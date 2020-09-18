@@ -7,6 +7,7 @@ const path = require('path');
 const { isIP } = require('./isIP');
 const { setRegion } = require('./setRegion');
 const { getReqUrl } = require('../client/getReqUrl');
+const { encoder } = require('./encoder');
 
 interface Headers {
   [propName: string]: any
@@ -73,8 +74,15 @@ export function createRequest(this: any, params) {
     }
   }
 
+  const { hasOwnProperty } = Object.prototype;
+  for (const k in headers) {
+    if (headers[k] && hasOwnProperty.call(headers, k)) {
+      headers[k] = encoder(String(headers[k]), this.options.headerEncoding);
+    }
+  }
+
   const authResource = this._getResource(params);
-  headers.authorization = this.authorization(params.method, authResource, params.subres, headers);
+  headers.authorization = this.authorization(params.method, authResource, params.subres, headers, this.options.headerEncoding);
 
   // const url = this._getReqUrl(params);
   if (isIP(this.options.endpoint.hostname)) {
